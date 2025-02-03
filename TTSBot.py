@@ -64,7 +64,7 @@ async def speak_in_vc(channel, message, effect=None):
             "normal": "",
             "robotic": "asetrate=44100*1.5,atempo=0.7,highpass=f=1000",
             "echo": "aecho=0.8:0.9:1000:0.3",
-            "deep": "asetrate=44100*0.8,atempo=1.2",
+            "deep": "asetrate=44100*0.8,atempo=1.25,lowpass=f=500",
             "fast": "atempo=1.5",
             "slow": "atempo=0.7"
         }
