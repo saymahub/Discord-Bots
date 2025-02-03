@@ -51,7 +51,7 @@ async def randomly_join_and_play():
                     except Exception as e:
                         print(f"Error: {e}")
         
-        wait_time = random.randint(600, 1200)  # Wait between 30 sec to 50 sec before joining again
+        wait_time = random.randint(120, 1200)  
         await asyncio.sleep(wait_time)
 
 bot.run(TOKEN)
