@@ -7,7 +7,7 @@ from discord.ext import commands
 
 load_dotenv()
 
-TOKEN = os.getenv('TOKEN')
+TOKEN = os.getenv('TOKEN_audio_bot')
 
 AUDIO_FOLDER = "./audio"  
 LEAVE_DELAY = 1  
@@ -51,7 +51,7 @@ async def randomly_join_and_play():
                     except Exception as e:
                         print(f"Error: {e}")
         
-        wait_time = random.randint(120, 1200)  
+        wait_time = random.randint(600, 5400)  
         await asyncio.sleep(wait_time)
 
 bot.run(TOKEN)
