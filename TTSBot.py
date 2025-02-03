@@ -104,7 +104,7 @@ async def say(ctx, effect: str = None, *, message: str):
 
     if ctx.author.voice and ctx.author.voice.channel:
         if effect and effect.lower() not in ["normal", "robotic", "echo", "deep", "fast", "slow"]:
-            await ctx.send("❌ Invalid effect! Choose from: robotic, echo, deep, fast, slow.")
+            await ctx.send("❌ Invalid effect! Choose from: normal, robotic, echo, deep, fast, slow.")
             return
 
         last_immediate_time = time.time()
