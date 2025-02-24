@@ -6,52 +6,59 @@ from dotenv import load_dotenv
 from discord.ext import commands
 
 load_dotenv()
-
 TOKEN = os.getenv('TOKEN_audio_bot')
 
-AUDIO_FOLDER = "./audio"  
-LEAVE_DELAY = 1  
+AUDIO_FOLDER = "./audio"
+MIN_INTERVAL = 600  
+MAX_INTERVAL = 3600 
 
-intents = discord.Intents.default()
-intents.guilds = True
-intents.voice_states = True
-intents.messages = True
-
+intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 def get_random_audio():
     audio_files = [f for f in os.listdir(AUDIO_FOLDER) if f.endswith(('.mp3', '.wav'))]
-    if not audio_files:
-        return None
-    return os.path.join(AUDIO_FOLDER, random.choice(audio_files))
+    return os.path.join(AUDIO_FOLDER, random.choice(audio_files)) if audio_files else None
+
+async def get_random_active_voice_channel():
+    active_channels = [
+        vc for guild in bot.guilds for vc in guild.voice_channels
+        if any(not member.bot for member in vc.members) 
+    ]
+    return random.choice(active_channels) if active_channels else None
 
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
-    await randomly_join_and_play()
+    bot.loop.create_task(voice_channel_watcher())
 
-async def randomly_join_and_play():
+async def voice_channel_watcher():
     await bot.wait_until_ready()
-    
-    while True:
-        for guild in bot.guilds:
-            voice_channels = [vc for vc in guild.voice_channels if len(vc.members) > 0]
-            if voice_channels:
-                channel = random.choice(voice_channels)
-                audio_file = get_random_audio()
 
+    while True:
+        channel = await get_random_active_voice_channel()
+        if channel:
+            vc = await channel.connect()
+            print(f"Connected to {channel.name}")
+
+            while True:
+                if not any(not member.bot for member in vc.channel.members):
+                    print("No human members left, disconnecting...")
+                    await vc.disconnect()
+                    break
+
+                wait_time = random.randint(MIN_INTERVAL, MAX_INTERVAL)
+                
+
+                audio_file = get_random_audio()
                 if audio_file:
-                    try:
-                        vc = await channel.connect()
-                        vc.play(discord.FFmpegPCMAudio(audio_file))
-                        while vc.is_playing():
-                            await asyncio.sleep(1)
-                        await asyncio.sleep(LEAVE_DELAY)
-                        await vc.disconnect()
-                    except Exception as e:
-                        print(f"Error: {e}")
-        
-        wait_time = random.randint(600, 5400)  
-        await asyncio.sleep(wait_time)
+                    print(f"Playing: {audio_file}")
+                    vc.play(discord.FFmpegPCMAudio(audio_file))
+                    while vc.is_playing():
+                        await asyncio.sleep(1)
+
+                    await asyncio.sleep(wait_time)
+
+        else:
+            await asyncio.sleep(60)
 
 bot.run(TOKEN)
