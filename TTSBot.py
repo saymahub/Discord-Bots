@@ -18,6 +18,7 @@ intents.voice_states = True
 intents.messages = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+
 def get_random_message():
 
     try:
@@ -43,7 +44,7 @@ async def on_ready():
 async def voice_channel_watcher():
 
     await bot.wait_until_ready()
-
+    wait_time = 0
     while True:
         channel = await get_random_active_voice_channel()
         if channel:
@@ -56,20 +57,27 @@ async def voice_channel_watcher():
                     print("No human members left, disconnecting...")
                     await vc.disconnect()
                     break
-
-                wait_time = random.randint(MIN_INTERVAL, MAX_INTERVAL)
                 
+                vc.play(discord.FFmpegPCMAudio("silent.mp3"))
+                await asyncio.sleep(45) 
 
-                message = get_random_message()
-                os.system(f'gtts-cli "{message}" --output speech.mp3')
-                print(f"Saying: {message}")
-                vc.play(discord.FFmpegPCMAudio("speech.mp3"))
-                while vc.is_playing():
-                    await asyncio.sleep(1)
+                time_elapsed = 0
+                time_elapsed += 45
 
-                await asyncio.sleep(wait_time)
+                
+                print(f"Timer: {wait_time}")
 
-                os.remove("speech.mp3")
+                if time_elapsed >= wait_time:
+                    time_elapsed = 0
+                    message = get_random_message()
+                    os.system(f'gtts-cli "{message}" --output speech.mp3')
+                    print(f"Saying: {message}")
+                    
+                    vc.play(discord.FFmpegPCMAudio("speech.mp3"))
+                    while vc.is_playing():
+                        await asyncio.sleep(1)
+                    wait_time = random.randint(MIN_INTERVAL, MAX_INTERVAL)
+                    os.remove("speech.mp3")
 
         else:
             await asyncio.sleep(60)
